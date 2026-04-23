@@ -21,14 +21,14 @@ bot.start(async (ctx) => {
 
     if (student) {
       return ctx.reply(
-        `Привіт! 👋\nВи зареєстровані як батько/мати учня: *${student.name}* (${student.class}).\n\nНадішліть /меню щоб вибрати харчування на тиждень.`,
+        `Привіт! 👋\nВи зареєстровані як батько/мати учня: *${student.name}* (${student.class}).\n\nНадішліть /menu щоб вибрати харчування на тиждень.`,
         { parse_mode: "Markdown" },
       );
     }
 
     getSession(telegramId).step = "waiting_name";
     return ctx.reply(
-      "🍽️ Вітаємо у боті замовлення харчування!\n\nВведіть *прізвище та ім'я* вашої дитини так, як у списку класу.\n_(Наприклад: Іваненко Петро)_",
+      "🍽️ Вітаємо у боті замовлення харчування!\n\nВведіть *прізвище та ім'я* вашої дитини так, як у списку класу.\n_(Наприклад: Іваненко Петро)_\n\nПісля реєстрації надішліть /menu щоб обрати харчування.",
       { parse_mode: "Markdown" },
     );
   } catch (err) {
@@ -37,8 +37,8 @@ bot.start(async (ctx) => {
   }
 });
 
-// ─── /меню ───────────────────────────────────────────────────────────────────
-bot.command("меню", async (ctx) => {
+// ─── /menu ───────────────────────────────────────────────────────────────────
+bot.command("menu", async (ctx) => {
   const telegramId = String(ctx.from.id);
 
   try {
@@ -68,8 +68,8 @@ bot.command("меню", async (ctx) => {
   }
 });
 
-// ─── /статус ─────────────────────────────────────────────────────────────────
-bot.command("статус", async (ctx) => {
+// ─── /status ─────────────────────────────────────────────────────────────────
+bot.command("status", async (ctx) => {
   const telegramId = String(ctx.from.id);
 
   try {
@@ -131,7 +131,7 @@ bot.on("callback_query", async (ctx) => {
       await askForDay(ctx, session);
     } else {
       await ctx.reply(
-        "🎉 Дякуємо! Всі варіанти харчування на тиждень збережено.\n\nПеревірити: /статус",
+        "🎉 Дякуємо! Всі варіанти харчування на тиждень збережено.\n\nПеревірити: /status",
       );
     }
   } catch (err) {
@@ -162,7 +162,7 @@ bot.on("text", async (ctx) => {
     session.step = null;
 
     return ctx.reply(
-      `✅ Реєстрація успішна!\n\n👤 Ваша дитина: *${student.name}* (${student.class})\n\nНадішліть /меню щоб обрати харчування на тиждень.`,
+      `✅ Реєстрація успішна!\n\n👤 Ваша дитина: *${student.name}* (${student.class})\n\nНадішліть /menu щоб обрати харчування на тиждень.`,
       { parse_mode: "Markdown" },
     );
   } catch (err) {
