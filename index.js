@@ -215,15 +215,27 @@ function getCurrentWeekDays() {
 
 // ─── Запуск ───────────────────────────────────────────────────────────────────
 async function startBot() {
-  try {
-    await bot.launch({ dropPendingUpdates: true });
-    console.log("✅ Бот запущений!");
-  } catch (err) {
-    if (err.response?.error_code === 409) {
-      console.log("⚠️ 409 конфлікт — чекаємо 10 секунд і перезапускаємо...");
-      setTimeout(startBot, 10000);
-    } else {
-      throw err;
+  const MAX_ATTEMPTS = 5;
+  const RETRY_DELAY_MS = 15_000;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      await bot.launch({ dropPendingUpdates: true });
+      console.log("✅ Бот запущений!");
+      return;
+    } catch (err) {
+      if (err.response?.error_code === 409) {
+        console.log(
+          `⚠️ 409 конфлікт (спроба ${attempt}/${MAX_ATTEMPTS}) — чекаємо 15 секунд...`,
+        );
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+        } else {
+          throw err;
+        }
+      } else {
+        throw err;
+      }
     }
   }
 }
