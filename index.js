@@ -215,9 +215,8 @@ function getCurrentWeekDays() {
 
 // ─── Запуск ───────────────────────────────────────────────────────────────────
 async function startBot() {
-  const MAX_ATTEMPTS = 5;
-  const RETRY_DELAY_MS = 15_000;
-  await bot.telegram.deleteWebhook({ drop_pending_updates: true });
+  const MAX_ATTEMPTS = 10;
+  const RETRY_DELAY_MS = 5_000;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
@@ -227,7 +226,7 @@ async function startBot() {
     } catch (err) {
       if (err.response?.error_code === 409) {
         console.log(
-          `⚠️ 409 конфлікт (спроба ${attempt}/${MAX_ATTEMPTS}) — чекаємо 15 секунд...`,
+          `⚠️ 409 конфлікт (спроба ${attempt}/${MAX_ATTEMPTS}) — чекаємо 5 секунд...`,
         );
         if (attempt < MAX_ATTEMPTS) {
           await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
@@ -241,7 +240,10 @@ async function startBot() {
   }
 }
 
-startBot();
+startBot().catch((err) => {
+  console.error("❌ Бот не зміг запуститись:", err);
+  process.exit(1);
+});
 
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));
