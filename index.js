@@ -217,6 +217,7 @@ function getCurrentWeekDays() {
 async function startBot() {
   const MAX_ATTEMPTS = 5;
   const RETRY_DELAY_MS = 15_000;
+  await bot.telegram.deleteWebhook({ drop_pending_updates: true });
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
