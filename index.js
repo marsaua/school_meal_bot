@@ -1,6 +1,7 @@
 require("dotenv").config();
 const { Telegraf, Markup } = require("telegraf");
 const sheets = require("./sheets");
+const menu = require("./menu");
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -176,7 +177,17 @@ async function askForDay(ctx, session) {
   const day = session.days[session.currentDayIndex];
   if (!day) return;
 
-  await ctx.reply(`${day.label}\nОберіть варіант харчування:`, {
+  const dayName = day.label.replace("📅 ", "").split(",")[0].trim();
+  const dayMenu = menu[dayName];
+
+  let text = `${day.label}\n`;
+  if (dayMenu) {
+    const fmt = (items) => items.map((i) => `- ${i}`).join("\n");
+    text += `\n🅰️ Варіант А:\n${fmt(dayMenu.А)}\n\n🅱️ Варіант Б:\n${fmt(dayMenu.Б)}\n`;
+  }
+  text += "\nОберіть варіант харчування:";
+
+  await ctx.reply(text, {
     parse_mode: "Markdown",
     ...Markup.inlineKeyboard([
       Markup.button.callback("🍱  Варіант А", `choice_А_${day.date}`),

@@ -1,21 +1,21 @@
-const { google } = require('googleapis');
+const { google } = require("googleapis");
 
 // ─── Авторизація ──────────────────────────────────────────────────────────────
 const auth = new google.auth.GoogleAuth({
   credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
-
+console.log("SHEETS INIT");
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 
 // Назви аркушів у Google Sheets
-const SHEET_STUDENTS = 'Учні';   // Список учнів: A=ПІБ, B=Клас, C=TelegramID
-const SHEET_FOOD = 'Харчування'; // Вибори: A=ПІБ, B=Клас, C+=дати
+const SHEET_STUDENTS = "Учні"; // Список учнів: A=ПІБ, B=Клас, C=TelegramID
+const SHEET_FOOD = "Харчування"; // Вибори: A=ПІБ, B=Клас, C+=дати
 
 // ─── Хелпер: отримати клієнт Sheets ──────────────────────────────────────────
 async function getSheetsClient() {
   const authClient = await auth.getClient();
-  return google.sheets({ version: 'v4', auth: authClient });
+  return google.sheets({ version: "v4", auth: authClient });
 }
 
 // ─── Отримати всіх учнів ──────────────────────────────────────────────────────
@@ -43,11 +43,11 @@ async function getStudentByTelegramId(telegramId) {
 // ─── Знайти учня за ім'ям (нечутливо до регістру) ────────────────────────────
 async function findStudentByName(inputName) {
   const rows = await getAllStudents();
-  const normalized = inputName.toLowerCase().trim().replace(/\s+/g, ' ');
+  const normalized = inputName.toLowerCase().trim().replace(/\s+/g, " ");
 
   for (let i = 0; i < rows.length; i++) {
     const [name, cls] = rows[i];
-    if (name && name.toLowerCase().trim().replace(/\s+/g, ' ') === normalized) {
+    if (name && name.toLowerCase().trim().replace(/\s+/g, " ") === normalized) {
       return { name, class: cls, rowIndex: i + 2 };
     }
   }
@@ -60,7 +60,7 @@ async function saveTelegramId(rowIndex, telegramId) {
   await client.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
     range: `${SHEET_STUDENTS}!C${rowIndex}`,
-    valueInputOption: 'RAW',
+    valueInputOption: "RAW",
     requestBody: { values: [[telegramId]] },
   });
 }
@@ -84,7 +84,7 @@ async function saveChoice(student, date, choice) {
     await client.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_FOOD}!${colLetter}1`,
-      valueInputOption: 'RAW',
+      valueInputOption: "RAW",
       requestBody: { values: [[date]] },
     });
   }
@@ -94,7 +94,9 @@ async function saveChoice(student, date, choice) {
     spreadsheetId: SPREADSHEET_ID,
     range: `${SHEET_FOOD}!A:A`,
   });
-  const nameCol = (nameColRes.data.values || []).map((r) => (r[0] || '').trim());
+  const nameCol = (nameColRes.data.values || []).map((r) =>
+    (r[0] || "").trim(),
+  );
 
   let studentRowIndex = nameCol.indexOf(student.name.trim());
   if (studentRowIndex === -1) {
@@ -106,7 +108,7 @@ async function saveChoice(student, date, choice) {
     await client.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_FOOD}!A${studentRowIndex + 1}:B${studentRowIndex + 1}`,
-      valueInputOption: 'RAW',
+      valueInputOption: "RAW",
       requestBody: { values: [[student.name, student.class]] },
     });
   }
@@ -116,7 +118,7 @@ async function saveChoice(student, date, choice) {
   await client.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
     range: `${SHEET_FOOD}!${colLetter}${studentRowIndex + 1}`,
-    valueInputOption: 'RAW',
+    valueInputOption: "RAW",
     requestBody: { values: [[choice]] },
   });
 }
@@ -135,7 +137,9 @@ async function getWeekChoices(student, dates) {
     spreadsheetId: SPREADSHEET_ID,
     range: `${SHEET_FOOD}!A:A`,
   });
-  const nameCol = (nameColRes.data.values || []).map((r) => (r[0] || '').trim());
+  const nameCol = (nameColRes.data.values || []).map((r) =>
+    (r[0] || "").trim(),
+  );
   const studentRowIndex = nameCol.indexOf(student.name.trim());
 
   if (studentRowIndex === -1) return {};
@@ -149,14 +153,14 @@ async function getWeekChoices(student, dates) {
   const result = {};
   for (const date of dates) {
     const colIdx = headers.findIndex((h) => h && h.trim() === date);
-    result[date] = colIdx !== -1 ? (row[colIdx] || null) : null;
+    result[date] = colIdx !== -1 ? row[colIdx] || null : null;
   }
   return result;
 }
 
 // ─── Хелпер: номер колонки → буква (1→A, 27→AA) ──────────────────────────────
 function columnToLetter(col) {
-  let letter = '';
+  let letter = "";
   while (col > 0) {
     const mod = (col - 1) % 26;
     letter = String.fromCharCode(65 + mod) + letter;
